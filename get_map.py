@@ -7,6 +7,8 @@ map_file = "map.png"
 
 
 def get_map(ll, spn):
+    ll = ','.join(map(str, ll))
+    spn = str(spn) + ',' + str(spn)
     params = {
         'apikey': apikey,
         'll': ll,
