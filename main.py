@@ -48,6 +48,9 @@ class MainWindow(QWidget):
         self.searchButton = QPushButton('Искать', self)
         self.searchButton.move(720, 50)
         self.searchButton.clicked.connect(self.search)
+        self.resetButton = QPushButton('Сброс поиска', self)
+        self.resetButton.move(600, 90)
+        self.resetButton.clicked.connect(self.reset)
 
     def keyPressEvent(self, event):
         if event.key() == Qt.Key.Key_PageUp:
@@ -90,6 +93,11 @@ class MainWindow(QWidget):
             self.searchLine.setText('Не найдено')
         except KeyError:
             pass
+
+    def reset(self):
+        self.cur_pt = None
+        self.searchLine.setText('')
+        self.updateMap()
 
     def closeEvent(self, event):
         os.remove(map_file)
