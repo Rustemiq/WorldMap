@@ -2,10 +2,12 @@ import os
 import sys
 
 from PyQt6.QtGui import QPixmap
-from PyQt6.QtWidgets import QApplication, QWidget, QLabel, QPushButton
+from PyQt6.QtWidgets import QApplication, QWidget, QLabel, QPushButton, \
+    QLineEdit
 from PyQt6.QtCore import Qt
 
 from get_map import get_map
+from get_coord import get_coord
 
 SCREEN_SIZE = [800, 500]
 map_file = 'map.png'
@@ -19,11 +21,12 @@ class MainWindow(QWidget):
         super().__init__()
         self.cur_ll = [20, 40]
         self.cur_spn = spn_down_limit
+        self.cur_pt = None
         self.initUI()
         self.updateMap()
 
     def updateMap(self):
-        get_map(self.cur_ll, self.cur_spn, self.theme)
+        get_map(self.cur_ll, self.cur_spn, self.cur_pt, self.theme)
         self.pixmap = QPixmap(map_file)
         self.image.setPixmap(self.pixmap)
 
@@ -40,6 +43,11 @@ class MainWindow(QWidget):
         self.themeChanger.move(650, 0)
         self.themeChanger.clicked.connect(self.changeTheme)
         self.theme = 'light'
+        self.searchLine = QLineEdit(self)
+        self.searchLine.move(600, 50)
+        self.searchButton = QPushButton('Искать', self)
+        self.searchButton.move(720, 50)
+        self.searchButton.clicked.connect(self.search)
 
     def keyPressEvent(self, event):
         if event.key() == Qt.Key.Key_PageUp:
@@ -50,7 +58,6 @@ class MainWindow(QWidget):
             self.cur_spn = spn_down_limit
         if self.cur_spn > spn_up_limit:
             self.cur_spn = spn_up_limit
-
         if event.key() == Qt.Key.Key_S:
             self.cur_ll[1] -= self.cur_spn / 2
         if event.key() == Qt.Key.Key_W:
@@ -73,6 +80,16 @@ class MainWindow(QWidget):
             'Тема: светлая' if self.themeChanger.text() == 'Тема: темная' else 'Тема: темная'
         )
         self.updateMap()
+
+    def search(self):
+        try:
+            self.cur_ll = get_coord(self.searchLine.text())
+            self.cur_pt = self.cur_ll[:]
+            self.updateMap()
+        except IndexError:
+            self.searchLine.setText('Не найдено')
+        except KeyError:
+            pass
 
     def closeEvent(self, event):
         os.remove(map_file)
