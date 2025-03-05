@@ -2,7 +2,7 @@ import os
 import sys
 
 from PyQt6.QtGui import QPixmap
-from PyQt6.QtWidgets import QApplication, QWidget, QLabel
+from PyQt6.QtWidgets import QApplication, QWidget, QLabel, QPushButton
 from PyQt6.QtCore import Qt
 
 from get_map import get_map
@@ -23,7 +23,7 @@ class MainWindow(QWidget):
         self.updateMap()
 
     def updateMap(self):
-        get_map(self.cur_ll, self.cur_spn)
+        get_map(self.cur_ll, self.cur_spn, self.theme)
         self.pixmap = QPixmap(map_file)
         self.image.setPixmap(self.pixmap)
 
@@ -36,6 +36,10 @@ class MainWindow(QWidget):
         self.image.move(0, 0)
         self.image.resize(600, 450)
         self.image.setPixmap(self.pixmap)
+        self.themeChanger = QPushButton('Тема: светлая', self)
+        self.themeChanger.move(650, 0)
+        self.themeChanger.clicked.connect(self.changeTheme)
+        self.theme = 'light'
 
     def keyPressEvent(self, event):
         if event.key() == Qt.Key.Key_PageUp:
@@ -47,13 +51,13 @@ class MainWindow(QWidget):
         if self.cur_spn > spn_up_limit:
             self.cur_spn = spn_up_limit
 
-        if event.key() == Qt.Key.Key_Down:
+        if event.key() == Qt.Key.Key_S:
             self.cur_ll[1] -= self.cur_spn / 2
-        if event.key() == Qt.Key.Key_Up:
+        if event.key() == Qt.Key.Key_W:
             self.cur_ll[1] += self.cur_spn / 2
-        if event.key() == Qt.Key.Key_Right:
+        if event.key() == Qt.Key.Key_D:
             self.cur_ll[0] += self.cur_spn / 2
-        if event.key() == Qt.Key.Key_Left:
+        if event.key() == Qt.Key.Key_A:
             self.cur_ll[0] -= self.cur_spn / 2
         if self.cur_ll[1] < lat_down_limit:
             self.cur_ll[1] = lat_down_limit
@@ -61,6 +65,13 @@ class MainWindow(QWidget):
             self.cur_ll[1] = lat_up_limit
         self.cur_ll[0] = (self.cur_ll[0] + 180) % 360 - 180
 
+        self.updateMap()
+
+    def changeTheme(self):
+        self.theme = 'dark' if self.theme == 'light' else 'light'
+        self.themeChanger.setText(
+            'Тема: светлая' if self.themeChanger.text() == 'Тема: темная' else 'Тема: темная'
+        )
         self.updateMap()
 
     def closeEvent(self, event):
