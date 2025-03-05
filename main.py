@@ -7,9 +7,9 @@ from PyQt6.QtWidgets import QApplication, QWidget, QLabel, QPushButton, \
 from PyQt6.QtCore import Qt
 
 from get_map import get_map
-from get_coord import get_coord
+from get_obj_info import get_obj_info
 
-SCREEN_SIZE = [800, 500]
+SCREEN_SIZE = (1000, 500)
 map_file = 'map.png'
 spn_up_limit = 1.8
 spn_down_limit = 0.3
@@ -51,6 +51,10 @@ class MainWindow(QWidget):
         self.resetButton = QPushButton('Сброс поиска', self)
         self.resetButton.move(600, 90)
         self.resetButton.clicked.connect(self.reset)
+        self.addressLine = QLineEdit('Адрес', self)
+        self.addressLine.setEnabled(False)
+        self.addressLine.move(600, 130)
+        self.addressLine.resize(400, 20)
 
     def keyPressEvent(self, event):
         if event.key() == Qt.Key.Key_PageUp:
@@ -86,8 +90,9 @@ class MainWindow(QWidget):
 
     def search(self):
         try:
-            self.cur_ll = get_coord(self.searchLine.text())
+            self.cur_ll, address = get_obj_info(self.searchLine.text())
             self.cur_pt = self.cur_ll[:]
+            self.addressLine.setText(address)
             self.updateMap()
         except IndexError:
             self.searchLine.setText('Не найдено')
@@ -97,6 +102,7 @@ class MainWindow(QWidget):
     def reset(self):
         self.cur_pt = None
         self.searchLine.setText('')
+        self.addressLine.setText('Адрес')
         self.updateMap()
 
     def closeEvent(self, event):
