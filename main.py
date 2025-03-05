@@ -9,15 +9,16 @@ from get_map import get_map
 
 SCREEN_SIZE = [800, 500]
 map_file = 'map.png'
-spn_limit = 1.8
-spn_min = 0.3
+spn_up_limit = 1.8
+spn_down_limit = 0.3
+lat_up_limit, lat_down_limit = 85, -85
 
 
 class MainWindow(QWidget):
     def __init__(self):
         super().__init__()
-        self.cur_ll = [30, 50]
-        self.cur_spn = spn_min
+        self.cur_ll = [20, 40]
+        self.cur_spn = spn_down_limit
         self.initUI()
         self.updateMap()
 
@@ -41,10 +42,25 @@ class MainWindow(QWidget):
             self.cur_spn += 0.7
         elif event.key() == Qt.Key.Key_PageDown:
             self.cur_spn -= 0.7
-        if self.cur_spn < spn_min:
-            self.cur_spn = spn_min
-        if self.cur_spn > spn_limit:
-            self.cur_spn = spn_limit
+        if self.cur_spn < spn_down_limit:
+            self.cur_spn = spn_down_limit
+        if self.cur_spn > spn_up_limit:
+            self.cur_spn = spn_up_limit
+
+        if event.key() == Qt.Key.Key_Down:
+            self.cur_ll[1] -= self.cur_spn / 2
+        if event.key() == Qt.Key.Key_Up:
+            self.cur_ll[1] += self.cur_spn / 2
+        if event.key() == Qt.Key.Key_Right:
+            self.cur_ll[0] += self.cur_spn / 2
+        if event.key() == Qt.Key.Key_Left:
+            self.cur_ll[0] -= self.cur_spn / 2
+        if self.cur_ll[1] < lat_down_limit:
+            self.cur_ll[1] = lat_down_limit
+        if self.cur_ll[1] > lat_up_limit:
+            self.cur_ll[1] = lat_up_limit
+        self.cur_ll[0] = (self.cur_ll[0] + 180) % 360 - 180
+
         self.updateMap()
 
     def closeEvent(self, event):
