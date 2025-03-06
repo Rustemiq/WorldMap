@@ -1,5 +1,6 @@
 import os
 import sys
+import math
 
 from PyQt6.QtGui import QPixmap
 from PyQt6.QtWidgets import QApplication, QWidget, QLabel, QPushButton, \
@@ -14,6 +15,7 @@ map_file = 'map.png'
 spn_up_limit = 2.3
 spn_down_limit = 0.3
 lat_up_limit, lat_down_limit = 85, -85
+map_left_top = 0, 0
 
 
 class MainWindow(QWidget):
@@ -22,6 +24,8 @@ class MainWindow(QWidget):
         self.cur_ll = [20, 40]
         self.cur_spn = spn_down_limit
         self.cur_pt = None
+        self.address = 'Адрес'
+        self.postal_code = None
         self.initUI()
         self.updateMap()
 
@@ -92,16 +96,18 @@ class MainWindow(QWidget):
         )
         self.updateMap()
 
-    def writeAddress(self, address, postal_code):
-        if postal_code is not None and self.is_postal_code_visible:
-            address += ', Почт. инд.:' + postal_code
-        self.addressLine.setText(address)
+    def writeAddress(self):
+        full_address = self.address
+        if self.postal_code is not None and self.is_postal_code_visible:
+            full_address += ', Почт. инд.:' + self.postal_code
+        self.addressLine.setText(full_address)
 
     def search(self):
         try:
-            self.cur_ll, address, postal_code = get_obj_info(self.searchLine.text())
-            self.cur_pt = self.cur_ll[:]
-            self.writeAddress(address, postal_code)
+            ll, self.address, self.postal_code = get_obj_info(self.searchLine.text())
+            self.cur_pt = ll[:]
+            self.cur_ll = ll[:]
+            self.writeAddress()
             self.updateMap()
         except IndexError:
             self.searchLine.setText('Не найдено')
@@ -119,8 +125,18 @@ class MainWindow(QWidget):
         self.postalButton.setText(
             'Почт. инд.: вкл' if self.postalButton.text() == 'Почт. инд.: выкл' else 'Почт. инд.: выкл'
         )
-        address, postal_code = get_obj_info(self.searchLine.text())[1:]
-        self.writeAddress(address, postal_code)
+        self.writeAddress()
+
+    def mousePressEvent(self, event):
+        if event.button() == Qt.MouseButton.LeftButton:
+            x, y = event.pos().x() - map_left_top[0], event.pos().y() - map_left_top[1]
+            left, top = self.cur_ll[0] - self.cur_spn, self.cur_ll[1] + self.cur_spn
+            lon = left + self.cur_spn * 2 * (x / 600)
+            lat = top - self.cur_spn * 2 * (y / 450)
+            self.address, self.postal_code = get_obj_info(str(lon) + ',' + str(lat))[1:]
+            self.cur_pt = [lon, lat]
+            self.writeAddress()
+            self.updateMap()
 
     def closeEvent(self, event):
         os.remove(map_file)
