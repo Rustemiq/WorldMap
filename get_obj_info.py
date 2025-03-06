@@ -17,4 +17,8 @@ def get_obj_info(geocode):
     toponym_coordinates = toponym["Point"]["pos"]
     toponym_address = toponym["metaDataProperty"]["GeocoderMetaData"]['Address']['formatted']
     toponym_coordinates = list(map(float, toponym_coordinates.split()))
-    return toponym_coordinates, toponym_address
+    try:
+        postal_code = toponym["metaDataProperty"]["GeocoderMetaData"]['Address']['postal_code']
+    except KeyError:
+        postal_code = None
+    return toponym_coordinates, toponym_address, postal_code

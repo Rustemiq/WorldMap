@@ -11,7 +11,7 @@ from get_obj_info import get_obj_info
 
 SCREEN_SIZE = (1000, 500)
 map_file = 'map.png'
-spn_up_limit = 1.8
+spn_up_limit = 2.3
 spn_down_limit = 0.3
 lat_up_limit, lat_down_limit = 85, -85
 
@@ -55,12 +55,16 @@ class MainWindow(QWidget):
         self.addressLine.setEnabled(False)
         self.addressLine.move(600, 130)
         self.addressLine.resize(400, 20)
+        self.postalButton = QPushButton('Почт. инд.: вкл', self)
+        self.postalButton.move(600,  180)
+        self.postalButton.clicked.connect(self.switchPostalCodeVisible)
+        self.is_postal_code_visible = True
 
     def keyPressEvent(self, event):
         if event.key() == Qt.Key.Key_PageUp:
-            self.cur_spn += 0.7
+            self.cur_spn += 1
         elif event.key() == Qt.Key.Key_PageDown:
-            self.cur_spn -= 0.7
+            self.cur_spn -= 1
         if self.cur_spn < spn_down_limit:
             self.cur_spn = spn_down_limit
         if self.cur_spn > spn_up_limit:
@@ -90,8 +94,10 @@ class MainWindow(QWidget):
 
     def search(self):
         try:
-            self.cur_ll, address = get_obj_info(self.searchLine.text())
+            self.cur_ll, address, postal_code = get_obj_info(self.searchLine.text())
             self.cur_pt = self.cur_ll[:]
+            if postal_code is not None and self.is_postal_code_visible:
+                address += ', Почт. инд.:' + postal_code
             self.addressLine.setText(address)
             self.updateMap()
         except IndexError:
@@ -105,10 +111,16 @@ class MainWindow(QWidget):
         self.addressLine.setText('Адрес')
         self.updateMap()
 
+    def switchPostalCodeVisible(self):
+        self.is_postal_code_visible = not self.is_postal_code_visible
+        self.postalButton.setText(
+            'Почт. инд.: вкл' if self.postalButton.text() == 'Почт. инд.: выкл' else 'Почт. инд.: выкл'
+        )
+
     def closeEvent(self, event):
         os.remove(map_file)
 
-
+        
 if __name__ == '__main__':
     app = QApplication(sys.argv)
     wind = MainWindow()
