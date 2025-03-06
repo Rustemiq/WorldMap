@@ -92,13 +92,16 @@ class MainWindow(QWidget):
         )
         self.updateMap()
 
+    def writeAddress(self, address, postal_code):
+        if postal_code is not None and self.is_postal_code_visible:
+            address += ', Почт. инд.:' + postal_code
+        self.addressLine.setText(address)
+
     def search(self):
         try:
             self.cur_ll, address, postal_code = get_obj_info(self.searchLine.text())
             self.cur_pt = self.cur_ll[:]
-            if postal_code is not None and self.is_postal_code_visible:
-                address += ', Почт. инд.:' + postal_code
-            self.addressLine.setText(address)
+            self.writeAddress(address, postal_code)
             self.updateMap()
         except IndexError:
             self.searchLine.setText('Не найдено')
@@ -116,6 +119,8 @@ class MainWindow(QWidget):
         self.postalButton.setText(
             'Почт. инд.: вкл' if self.postalButton.text() == 'Почт. инд.: выкл' else 'Почт. инд.: выкл'
         )
+        address, postal_code = get_obj_info(self.searchLine.text())[1:]
+        self.writeAddress(address, postal_code)
 
     def closeEvent(self, event):
         os.remove(map_file)
