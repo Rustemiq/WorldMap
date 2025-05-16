@@ -9,6 +9,7 @@ from PyQt6.QtCore import Qt
 
 from get_map import get_map
 from get_obj_info import get_obj_info
+from get_organization import get_org
 
 SCREEN_SIZE = (1000, 500)
 map_file = 'map.png'
@@ -137,6 +138,18 @@ class MainWindow(QWidget):
             self.cur_pt = [lon, lat]
             self.writeAddress()
             self.updateMap()
+        if event.button() == Qt.MouseButton.RightButton:
+            x, y = event.pos().x() - map_left_top[0], event.pos().y() - map_left_top[1]
+            left, top = self.cur_ll[0] - self.cur_spn, self.cur_ll[1] + self.cur_spn
+            lon = left + self.cur_spn * 2 * (x / 600)
+            lat = top - self.cur_spn * 2 * (y / 450)
+            org_name = self.searchLine.text()
+            pt, address = get_org(str(lon) + ',' + str(lat), org_name)
+            self.cur_pt = pt if pt else self.cur_pt
+            self.address = address if address else self.address
+
+            self.updateMap()
+            self.writeAddress()
 
     def closeEvent(self, event):
         os.remove(map_file)
